@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "Node16",
+    "outDir": "./dist",
+    "esModuleInterop": true,
+    "moduleResolution": "Node16"
+  },
+  "include": ["src/*.ts", "src/test/ian-test.ts"],
+  "exclude": ["node_modules"]
+}

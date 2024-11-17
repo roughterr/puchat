@@ -1,0 +1,22 @@
+{
+  "name": "nodejs-server",
+  "version": "1.0.0",
+  "description": "NAU chat",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "express": "^5.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/ws": "^8.5.12",
+    "tsx": "^4.19.2"
+  }
+}
