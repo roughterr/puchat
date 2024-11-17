@@ -1,4 +1,4 @@
-This is a node.js version of the chat app. In this version of the app both front-end and backend are written in TypeScript.
+This is the back-end part of  of the chat app.
 
 ### Prerequisites:
 * install node.js:
@@ -15,3 +15,6 @@ This is a node.js version of the chat app. In this version of the app both front
 
 ### To start the test client application execute:
 ```node ./dist/client.js```
+
+### If you want to start the server without pre-comping execute:
+```npx tsx src/server.ts```
