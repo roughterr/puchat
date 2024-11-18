@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AuthenticationService {
@@ -7,7 +7,7 @@ export class AuthenticationService {
    * Notifies other components when you authenticated.
    * @private
    */
-  authenticatedSubject: Subject<any> = new Subject<boolean>();
+  private authenticatedSubject: Subject<any> = new Subject<boolean>();
 
   login(username: string, password: string) {
     const ws = new WebSocket('ws://localhost:8080');
@@ -31,5 +31,13 @@ export class AuthenticationService {
       alert(`WebSocketSubject connection closed.`);
       this.authenticatedSubject.next(false);
     }
+  }
+
+  /**
+   * Subscribers can know when the user logged in or logged out.
+   * @returns {Observable<any>}
+   */
+  getAuthenticatedObservable(): Observable<boolean> {
+    return this.authenticatedSubject.asObservable();
   }
 }

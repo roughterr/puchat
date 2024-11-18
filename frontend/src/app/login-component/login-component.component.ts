@@ -19,7 +19,7 @@ export class LoginComponentComponent {
   showLoggedInDiv: boolean = false;
 
   constructor(private websocketService: AuthenticationService) {
-    websocketService.authenticatedSubject.subscribe(authenticated => {
+    websocketService.getAuthenticatedObservable().subscribe(authenticated => {
       this.authenticated = authenticated;
       if (authenticated) {
         this.showLoggedInDivForAFewSeconds()
