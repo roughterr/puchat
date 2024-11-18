@@ -10,6 +10,6 @@
   <p><label>Password: </label><input id="password" type="password" [formControl]="password"></p>
   <button (click)="onLogin()">Log in</button>
 </div>
-<div *ngIf="authenticated">
+<div *ngIf="authenticated" class="container">
   <button (click)="onLogout()">Log out</button>
 </div>

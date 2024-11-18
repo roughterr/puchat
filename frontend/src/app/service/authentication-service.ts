@@ -9,28 +9,39 @@ export class AuthenticationService {
    */
   private authenticatedSubject: Subject<any> = new Subject<boolean>();
 
+  private ws: WebSocket | undefined;
+
   login(username: string, password: string) {
-    const ws = new WebSocket('ws://localhost:8080');
-    ws.onopen = () => {
+    this.ws = new WebSocket('ws://localhost:8080');
+    this.ws.onopen = () => {
       console.log(`WebSocketSubject connection opened.`);
       const message = {
         login: username,
         password: password,
         subject: 'authenicate'
       };
-      ws.send(JSON.stringify(message));
+      this.sendMessage(message);
     };
-    ws.onmessage = (message) => {
+    this.ws.onmessage = (message) => {
       console.log(`received message from websocket: ${message.data}`);
       if (message.data == 'authentication successful') {
         this.authenticatedSubject.next(true);
-        // this.authenticated = true;
       }
     };
-    ws.onclose = () => {
+    this.ws.onclose = () => {
       alert(`WebSocketSubject connection closed.`);
+      // forced logout because the session was dropped
       this.authenticatedSubject.next(false);
     }
+  }
+
+  logout() {
+    // this.ws?.close();
+    this.authenticatedSubject.next(false);
+  }
+
+  sendMessage(message: any) {
+    this.ws?.send(JSON.stringify(message));
   }
 
   /**

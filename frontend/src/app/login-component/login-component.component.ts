@@ -22,7 +22,7 @@ export class LoginComponentComponent {
     websocketService.getAuthenticatedObservable().subscribe(authenticated => {
       this.authenticated = authenticated;
       if (authenticated) {
-        this.showLoggedInDivForAFewSeconds()
+        this.showLoggedInDivForAFewSeconds();
       }
     });
   }
@@ -34,7 +34,7 @@ export class LoginComponentComponent {
 
   onLogout() {
     this.showLoggedOutDivDivForAFewSeconds();
-    this.authenticated = false;
+    this.websocketService.logout();
   }
 
   private showLoggedOutDivDivForAFewSeconds() {
