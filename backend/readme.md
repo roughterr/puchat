@@ -1,4 +1,4 @@
-This is the back-end part of  of the chat app.
+This is the back-end part of the chat app.
 
 ### Prerequisites:
 * install node.js:
