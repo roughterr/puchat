@@ -12,8 +12,8 @@ const app: Express = express();
 // without this the request body in Websocket will appear empty
 app.use(express.urlencoded({ extended: true }));
 
-// make content of folder "public" available in the browser
-app.use(express.static("public"));
+// make content of this folder available in the browser
+app.use(express.static("../frontend/dist/frontend/browser"));
 
 // for HTTP
 app.use(bodyParser.json({ limit: "100mb" }));
