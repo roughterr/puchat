@@ -1,6 +1,15 @@
-<p>Please enter your credentials</p>
-
-<p><label >Username: </label><input id="username" type="text" [formControl]="username"></p>
-<p><label >Password: </label><input id="password" type="password" [formControl]="password"></p>
-
-<button (click)="onLogin()">Log in</button>
+<div *ngIf="showLoggedOutDiv">
+  <p style="color:orangered;">You have logged out.</p>
+</div>
+<div *ngIf="showLoggedInDiv">
+  <p style="color:green;">You have logged in.</p>
+</div>
+<div *ngIf="!authenticated">
+  <p>Please enter your credentials:</p>
+  <p><label>Username: </label><input id="username" type="text" [formControl]="username"></p>
+  <p><label>Password: </label><input id="password" type="password" [formControl]="password"></p>
+  <button (click)="onLogin()">Log in</button>
+</div>
+<div *ngIf="authenticated">
+  <button (click)="onLogout()">Log out</button>
+</div>

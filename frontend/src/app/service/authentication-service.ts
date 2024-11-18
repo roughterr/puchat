@@ -1,8 +1,13 @@
 import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
-export class WebsocketService {
-  // authenticated: boolean = false;
+export class AuthenticationService {
+  /**
+   * Notifies other components when you authenticated.
+   * @private
+   */
+  authenticatedSubject: Subject<any> = new Subject<boolean>();
 
   login(username: string, password: string) {
     const ws = new WebSocket('ws://localhost:8080');
@@ -18,12 +23,13 @@ export class WebsocketService {
     ws.onmessage = (message) => {
       console.log(`received message from websocket: ${message.data}`);
       if (message.data == 'authentication successful') {
-        alert("You're logged in successfully!")
+        this.authenticatedSubject.next(true);
         // this.authenticated = true;
       }
     };
     ws.onclose = () => {
-      alert(`WebSocketSubject connection closed.`)
+      alert(`WebSocketSubject connection closed.`);
+      this.authenticatedSubject.next(false);
     }
   }
 }
