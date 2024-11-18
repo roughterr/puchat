@@ -4,12 +4,18 @@
 <div *ngIf="showLoggedInDiv">
   <p style="color:green;">You have logged in.</p>
 </div>
-<div *ngIf="!authenticated">
+<div *ngIf="loginExpanded">
   <p>Please enter your credentials:</p>
   <p><label>Username: </label><input id="username" type="text" [formControl]="username"></p>
   <p><label>Password: </label><input id="password" type="password" [formControl]="password"></p>
-  <button (click)="onLogin()">Log in</button>
+  <p><button (click)="onLogin()">Log in</button></p>
+  <p><button (click)="collapseLogin()">Cancel</button></p>
 </div>
-<div *ngIf="authenticated" class="container">
-  <button (click)="onLogout()">Log out</button>
+<div class="container">
+  <div *ngIf="!authenticated && !loginExpanded">
+    <button (click)="expandLogin()">Log in</button>
+  </div>
+  <div *ngIf="authenticated">
+    <button (click)="onLogout()">Log out</button>
+  </div>
 </div>

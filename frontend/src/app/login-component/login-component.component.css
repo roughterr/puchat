@@ -1,3 +1,6 @@
 .container {
   text-align: right;
 }
+.button {
+  margin-right: 10px; /* Adds 10px space to the right of the button */
+}

@@ -17,12 +17,14 @@ export class LoginComponentComponent {
   authenticated: boolean = false;
   showLoggedOutDiv: boolean = false;
   showLoggedInDiv: boolean = false;
+  loginExpanded: boolean = false;
 
   constructor(private websocketService: AuthenticationService) {
     websocketService.getAuthenticatedObservable().subscribe(authenticated => {
       this.authenticated = authenticated;
       if (authenticated) {
         this.showLoggedInDivForAFewSeconds();
+        this.loginExpanded = false;
       }
     });
   }
@@ -49,6 +51,14 @@ export class LoginComponentComponent {
     setTimeout(() => {
       this.showLoggedInDiv = false;
     }, 3000);
+  }
+
+  expandLogin() {
+    this.loginExpanded = true;
+  }
+
+  collapseLogin() {
+    this.loginExpanded = false;
   }
 }
 
