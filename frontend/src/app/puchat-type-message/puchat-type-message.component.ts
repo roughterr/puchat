@@ -37,6 +37,7 @@ export class PuchatTypeMessageComponent {
       toWhom: this.toWhom.getRawValue()
     };
     this.websocketService.sendMessage(message);
+    // reset values
     this.content = "";
     this.toWhom.setValue("");
   }

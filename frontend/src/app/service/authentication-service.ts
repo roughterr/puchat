@@ -7,7 +7,7 @@ export class AuthenticationService {
    * Notifies other components when you authenticated.
    * @private
    */
-  private authenticatedSubject: Subject<any> = new Subject<boolean>();
+  private authenticatedSubject: Subject<boolean> = new Subject<boolean>();
 
   private ws: WebSocket | undefined;
 
