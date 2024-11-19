@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { NgIf } from '@angular/common';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AuthenticationService } from '../service/authentication-service';
 
@@ -7,7 +6,6 @@ import { AuthenticationService } from '../service/authentication-service';
   selector: 'app-puchat-type-message',
   standalone: true,
   imports: [
-    NgIf,
     ReactiveFormsModule,
     FormsModule
   ],
@@ -20,13 +18,9 @@ export class PuchatTypeMessageComponent {
    */
   content: string = '';
   toWhom = new FormControl('');
-  authenticated: boolean = false;
   private newMessageSubject: string = 'new-message';
 
   constructor(private websocketService: AuthenticationService) {
-    websocketService.getAuthenticatedObservable().subscribe(authenticated => {
-      this.authenticated = authenticated;
-    });
   }
 
   onSend() {
