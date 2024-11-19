@@ -1,0 +1,15 @@
+.btn {
+  background: #3994f6;
+  color: #fff;
+  padding: 15px 20px;
+  font-size: 20px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s all linear;
+  -webkit-box-shadow: 0px 0px 15px -6px rgba(0, 0, 0, 0.38);
+  box-shadow: 0px 0px 15px -6px rgba(0, 0, 0, 0.38);
+}
+.btn:hover {
+  background: #3283da;
+}

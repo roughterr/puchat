@@ -4,10 +4,10 @@
   <textarea
     [(ngModel)]="content"
     rows="5"
-    cols="300"
+    cols="100"
     placeholder="Write a message...">
   </textarea>
   <p>
-    <button (click)="onSend()">Send message</button>
+    <button [className]="'btn'" (click)="onSend()">Send message</button>
   </p>
 </div>
