@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { AuthenticationService } from '../service/authentication-service';
+import { MessageService } from '../service/message-service';
 
 @Component({
   selector: 'app-puchat-type-message',
@@ -18,21 +18,14 @@ export class PuchatTypeMessageComponent {
    */
   content: string = '';
   toWhom = new FormControl('');
-  private newMessageSubject: string = 'new-message';
 
-  constructor(private websocketService: AuthenticationService) {
+  constructor(private messageService: MessageService) {
   }
 
   onSend() {
-    const message = {
-      subject: this.newMessageSubject,
-      salt: Date.now().toString(),
-      content: this.content,
-      toWhom: this.toWhom.getRawValue()
-    };
-    this.websocketService.sendMessage(message);
+    this.messageService.sendMessage(this.content, this.toWhom.getRawValue() || '');
     // reset values
-    this.content = "";
-    this.toWhom.setValue("");
+    this.content = '';
+    this.toWhom.setValue('');
   }
 }

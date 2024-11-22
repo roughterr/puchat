@@ -26,6 +26,8 @@ export class AuthenticationService {
       console.log(`received message from websocket: ${message.data}`);
       if (message.data == 'authentication successful') {
         this.authenticatedSubject.next(true);
+      } else {
+        //TODO let's parse JSON
       }
     };
     this.ws.onclose = () => {
@@ -36,6 +38,7 @@ export class AuthenticationService {
   }
 
   logout() {
+    // we need to think about whether we want to close the websocket connection on logout
     // this.ws?.close();
     this.authenticatedSubject.next(false);
   }
