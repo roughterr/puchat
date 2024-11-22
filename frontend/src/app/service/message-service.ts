@@ -3,10 +3,17 @@ import { AuthenticationService } from './authentication-service';
 
 @Injectable({ providedIn: 'root' })
 export class MessageService {
-  private newMessageSubject: string = 'new-message';
+  public newMessageSubject: string = 'new-message'
   messages: Message[] = [];
 
   constructor(private authenticationService: AuthenticationService) {
+    authenticationService.getIncomingMessagesObservable().subscribe(incomingMessage => {
+      const message: Message = new Message();
+      message.mine = false;
+      message.content = incomingMessage.content;
+      //TODO some other fields
+      this.messages.push(message);
+    })
   }
 
   /**

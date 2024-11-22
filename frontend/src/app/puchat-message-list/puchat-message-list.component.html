@@ -1,0 +1,7 @@
+<div *ngFor="let message of messages" class="message">
+    <div class="first-square">{{message.fromWhom}}<br/>{{message.serverAckDate}}</div>
+  <div>
+    <div *ngIf="message.mine" class="my-message-text-div message-body">{{message.content}}</div>
+    <div *ngIf="!message.mine" class="alien-message-text-div message-body">{{message.content}}</div>
+  </div>
+</div>

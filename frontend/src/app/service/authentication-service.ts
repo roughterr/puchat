@@ -8,6 +8,11 @@ export class AuthenticationService {
    * @private
    */
   private authenticatedSubject: Subject<boolean> = new Subject<boolean>();
+  /**
+   * Notifies other components when you authenticated.
+   * @private
+   */
+  private incomingMessagesSubject: Subject<any> = new Subject<any>();
 
   private ws: WebSocket | undefined;
 
@@ -27,14 +32,19 @@ export class AuthenticationService {
       if (message.data == 'authentication successful') {
         this.authenticatedSubject.next(true);
       } else {
-        //TODO let's parse JSON
+        // let's parse JSON
+        let jsonObj = JSON.parse(message.data);
+        console.log(`subject: ${jsonObj.subject}`);
+        if (jsonObj.subject == 'new-message') {
+          this.incomingMessagesSubject.next(jsonObj);
+        }
       }
     };
     this.ws.onclose = () => {
       alert(`WebSocketSubject connection closed.`);
       // forced logout because the session was dropped
       this.authenticatedSubject.next(false);
-    }
+    };
   }
 
   logout() {
@@ -53,5 +63,9 @@ export class AuthenticationService {
    */
   getAuthenticatedObservable(): Observable<boolean> {
     return this.authenticatedSubject.asObservable();
+  }
+
+  getIncomingMessagesObservable(): Observable<any> {
+    return this.incomingMessagesSubject.asObservable();
   }
 }

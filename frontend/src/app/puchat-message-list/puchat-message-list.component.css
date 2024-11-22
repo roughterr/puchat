@@ -1,0 +1,44 @@
+:host {
+  /*height: 100%;*/
+  width: 100%;
+  overflow-y: scroll;
+  overflow-wrap: break-word;
+  /* to disable dots*/
+  list-style-type: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.message {
+  display: flex;
+  justify-content: flex-start;
+  margin: 4px;
+  padding: 4px;
+}
+
+.message-body {
+  padding: 4px;
+  margin: 4px;
+  border-radius: 12px;
+  min-width: 20px;
+  min-height: 20px;
+  text-align: center;
+  word-break: break-all; /* For FF. Chrome works fine with or without it.*/
+}
+
+.my-message-text-div {
+  background-color: peachpuff;
+}
+
+.alien-message-text-div {
+  background-color: #DAFFF2;
+}
+
+/* Author in the first line, and date in the second line.  */
+.first-square {
+  min-width: 100px;
+  max-width: 10px;
+  margin: 4px;
+  text-align: right;
+  vertical-align: middle;
+}
