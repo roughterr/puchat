@@ -33,7 +33,7 @@ async fn main() {
     // Create the TCP listener
     let listener = TcpListener::bind(&addr).await.expect("Failed to bind");
 
-    info!("Listening on: {}", addr);
+    println!("Listening on: {}", addr);
 
     while let Ok((stream, _)) = listener.accept().await {
         // Spawn a new task for each connection
