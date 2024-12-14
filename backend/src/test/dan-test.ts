@@ -11,7 +11,7 @@ ws.on("open", () => {
     const message: AuthenticationData = {
         login: "dan",
         password: "dan",
-        subject: "authenicate"
+        subject: "authenticate"
     };
     ws.send(JSON.stringify(message));
 });

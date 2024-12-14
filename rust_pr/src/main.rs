@@ -1,26 +1,17 @@
-mod contexts;
+mod dto;
 mod user_service;
-mod authentication_controller;
 
-use crate::authentication_controller::AuthenticationController;
-use crate::contexts::{ConnectionContext, MessageContext, Subject};
+use dto::{LoginCredentials, NewMessage, Subject};
 use futures::stream::SplitSink;
 use futures::{SinkExt, StreamExt};
-use log::{debug, error, info};
-use once_cell::sync::Lazy;
-use serde::Deserialize;
+use log::error;
 use std::collections::HashMap;
-use std::fmt::Debug;
-use std::{env, fmt};
-use std::net::Shutdown;
 use std::net::SocketAddr;
-use std::sync::Arc;
-use tokio::io::AsyncWriteExt;
+use std::env;
 use tokio::net::{TcpListener, TcpStream};
-use tokio::sync::Mutex;
 use tokio_tungstenite::{accept_async, tungstenite::protocol::Message, WebSocketStream};
-use std::sync::mpsc::{Sender, Receiver};
-use std::sync::mpsc;
+
+use crossbeam_channel::unbounded;
 
 #[tokio::main]
 async fn main() {
@@ -38,72 +29,77 @@ async fn main() {
 
     println!("Listening on: {}", addr);
 
-    // this is to make a queue of messages
-    let (channel_sender, channel_receiver): (Sender<ControllerAnswer>, Receiver<ControllerAnswer>) = mpsc::channel();
+    let (connection_command_sender, connection_command_receiver) = unbounded::<ConnectionCommand>();
+
     // listening to answers from handlers
-    tokio::spawn(handle_controller_answer(channel_receiver));
+    tokio::spawn(handle_connection_commands(connection_command_receiver));
 
     while let Ok((stream, _)) = listener.accept().await {
         // Spawn a new task for each connection
-        tokio::spawn(handle_connection(stream, channel_sender.clone()));
+        tokio::spawn(handle_connection(stream, connection_command_sender.clone()));
     }
 }
 
-async fn handle_controller_answer(channel_receiver: Receiver<ControllerAnswer>) {
+async fn handle_connection_commands(connection_command_receiver: crossbeam_channel::Receiver<ConnectionCommand>) {
+    let mut user_to_connection_senders: HashMap<String, Vec<crossbeam_channel::Sender<Message>>> = HashMap::new();
+
     // a lot should be added here
-    for received in channel_receiver {
-        match received.answer_type {
-            ControllerAnswerType::AssignConnectionToUser => println!("AssignConnectionToUser, username={:?}", received.username),
-            ControllerAnswerType::SendMessageToAnotherUser => println!("SendMessageToAnotherUser, username={:?}", received.username),
-            ControllerAnswerType::UnassignConnectionFromUser => println!("UnassignConnectionFromUser, username={:?}", received.username),
-            ControllerAnswerType::Nothing => println!("Nothing"),
+    for received in connection_command_receiver {
+        match received {
+            ConnectionCommand::AssignConnectionToUser { username, messages_sender } => {
+                println!("AssignConnectionToUser, username={}", username);
+                user_to_connection_senders
+                   .entry(username)
+                   .and_modify(|vec| vec.push(messages_sender.clone()))
+                   .or_insert_with(|| vec![messages_sender]);
+            },
+            ConnectionCommand::UnassignConnectionFromUser { username, messages_sender } => {
+                println!("UnassignConnectionFromUser, username={}", username);
+                if let Some(vec) = user_to_connection_senders.get_mut(&username) {
+                    vec.retain(|s| s.same_channel(&messages_sender));
+                    if vec.is_empty() {
+                        user_to_connection_senders.remove(&username);
+                    }
+                }
+            },
+            ConnectionCommand::SendMessageToAnotherUser { username, message } => {
+                println!("SendMessageToAnotherUser, username={}, message={}", username, message);
+                match user_to_connection_senders.get(&username) {
+                    Some(senders) => {
+                        let message = Message::Text(message.clone());
+                        for sender in senders {
+                            let _ = sender.send(message.clone());
+                        }
+                    },
+                    None => {
+                        println!("cannot send a message {} to user {} because he is not connected", message, username);
+                    }
+                }
+            }
         }
     }
 }
 
-trait Controller {
-    fn handle(
-        &self,
-        connection_context: &mut ConnectionContext,
-        message_context: MessageContext
-    ) -> ControllerAnswer;
+enum ConnectionCommand {
+   AssignConnectionToUser {username: String, messages_sender: crossbeam_channel::Sender<Message> },
+   UnassignConnectionFromUser {username: String, messages_sender: crossbeam_channel::Sender<Message> },
+   SendMessageToAnotherUser {username: String, message: String}
 }
 
-enum ControllerAnswerType {
-    AssignConnectionToUser,
-    UnassignConnectionFromUser,
-    SendMessageToAnotherUser,
-    Nothing
-}
-
-/**
- * A controller answer may be supplied with a sender to send messages back.
- */
-struct ControllerAnswer {
-   answer_type: ControllerAnswerType,
-   username: Option<String>,
-}
-
-struct NewMessageController;
-impl Controller for NewMessageController {
-    fn handle(&self, connection_context: &mut ConnectionContext, message_context: MessageContext) -> ControllerAnswer {
-        println!("NewMessageController is not implemented yet");
-        ControllerAnswer {
-            answer_type: crate::ControllerAnswerType::Nothing,
-            username: None
-        }
+/*
+* Sends a stream of messages to a WebSocket connection.
+*/
+async fn send_ws_messages_from_stream(mut ws_sender: SplitSink<WebSocketStream<TcpStream>,
+    Message>, messages_receiver: crossbeam_channel::Receiver<Message>) {
+    for message in messages_receiver {
+        ws_sender
+            .send(message)
+            .await
+            .expect("TODO: panic message");
     }
 }
 
-// The static map with thread-safe controllers
-static SUBJECT_TO_HANDLER: Lazy<HashMap<&'static str, Box<dyn Controller + Sync + Send>>> = Lazy::new(|| {
-    let mut map: HashMap<&str, Box<dyn Controller + Sync + Send>> = HashMap::new();
-    map.insert("authenicate", Box::new(AuthenticationController));
-    map.insert("new-message", Box::new(NewMessageController));
-    map
-});
-
-async fn handle_connection(stream: TcpStream, channel_sender: Sender<ControllerAnswer>) {
+async fn handle_connection(stream: TcpStream, connection_command_sender: crossbeam_channel::Sender<ConnectionCommand>) {
     // Accept the WebSocket connection
     let ws_stream = match accept_async(stream).await {
         Ok(ws) => ws,
@@ -114,42 +110,67 @@ async fn handle_connection(stream: TcpStream, channel_sender: Sender<ControllerA
     };
 
     // Split the WebSocket stream into a sender and receiver
-    let (mut sender, mut receiver) = ws_stream.split();
+    let (mut ws_sender, mut ws_receiver) = ws_stream.split();
 
-    let mut connection_context = contexts::ConnectionContext::new();
+    // ControllerAnswerPayload {
+    //     controller_answer: ControllerAnswer {
+    //         answer_type: ControllerAnswerType::AssignConnectionToUser,
+    //         message: "test".to_string(),
+    //         username: None,
+    //     },
+    //     message_sender: sender,
+    // };
 
+    // it lets this connection receive messages from other connections
+    let (messages_sender, messages_receiver) = unbounded::<Message>();
+    tokio::spawn(send_ws_messages_from_stream(ws_sender, messages_receiver));
+
+    let mut current_username: String = String::new();
+ 
     // Handle incoming messages
-    while let Some(msg) = receiver.next().await {
+    while let Some(msg) = ws_receiver.next().await {
         match msg {
             Ok(Message::Text(content)) => {
-                let subject: Subject = serde_json::from_str(&content).expect("JSON was not well-formatted");
+                let subject: Subject =
+                    serde_json::from_str(&content).expect("JSON was not well-formatted");
                 println!("subject: {:#?}", subject);
-                if let Some(handler) = SUBJECT_TO_HANDLER.get(&*subject.subject) {
-                    let message_context = MessageContext {
-                        content,
-                        subject
-                    };
-                    let answer = handler.handle(&mut connection_context, message_context);
-                    channel_sender.send(answer);
-                    // while let Some(msg) = connection_context.get_messages_queue().pop_front() {
-                    //     println!("The message is: {}", msg);
-                    //     sender
-                    //         .send(Message::Text(msg))
-                    //         .await
-                    //         .expect("TODO: panic message");
-                    // }
-                    println!("A message has been handled. connection_context.current_user_login={} :", connection_context.get_current_user_login())
-                } else {
-                    sender.send(Message::Text("unknown subject".to_owned())).await.expect("TODO: panic message");
-                    // Close the WebSocket connection gracefully
-                    sender.send(Message::Close(None)).await.expect("TODO: panic message");
-                    println!("Close frame sent");
-                    // sender.shutdown().await.unwrap();
-                    // // Reverse the received string and send it back
-                    // let reversed = text.chars().rev().collect::<String>();
-                    // if let Err(e) = sender.send(Message::Text(reversed)).await {
-                    //     error!("Error sending message: {}", e);
-                    // }
+                match subject.subject.as_str() {
+                    "authenticate" => {
+                        let mut login_credentials: LoginCredentials =
+                        serde_json::from_str(&content).expect("JSON was not well-formatted");
+                        let is_password_correct = user_service::are_credentials_correct(&            login_credentials.login, &login_credentials.password);
+                        println!("is_password_correct = {}", is_password_correct);
+                        if is_password_correct {
+                            let _ = messages_sender.send(Message::Text("authentication successful".to_owned()));
+                            let _ = connection_command_sender.send(ConnectionCommand::AssignConnectionToUser 
+                                { username: login_credentials.login.clone(), messages_sender: messages_sender.clone()}
+                            );
+                            current_username = login_credentials.login.clone();
+                        } else {
+                            let _ = messages_sender.send(Message::Text("provide correct login and password for authentication".to_owned()));
+                        }
+                    },
+                    "new-message" => {
+                        print!("sending message to another user");
+                        if current_username.is_empty() {
+                            let _ = messages_sender.send(Message::Text("you should authorize before sending messages to other users".to_owned()));
+                        } else {
+                            // parse the message
+                            let new_message: NewMessage =
+                                serde_json::from_str(&content).expect("JSON was not well-formatted");
+                            let _ = connection_command_sender.send(ConnectionCommand::SendMessageToAnotherUser {
+                                username: new_message.toWhom,
+                                message: new_message.content
+                            });
+                        }
+                    },
+                    _ => {
+                        let _ = messages_sender.send(Message::Text("unknown subject".to_owned()));
+                       // Close the WebSocket connection gracefully
+                       let _ = messages_sender.send(Message::Close(None));
+                       println!("Close frame sent");
+                       //sender.shutdown().await.unwrap();
+                    },
                 }
             }
             Ok(Message::Close(_)) => break,
@@ -159,5 +180,13 @@ async fn handle_connection(stream: TcpStream, channel_sender: Sender<ControllerA
                 break;
             }
         }
+        // print!("end of the connection function execution")
+        // if (current_username.is_empty()) {
+        //     println!("unauthorized connection has closed");
+        // } else {
+        //     connection_command_sender.send(ConnectionCommand::UnassignConnectionFromUser {
+        //         username: current_username.clone(), messages_sender: messages_sender.clone()}
+        //     );
+        // }   
     }
 }

@@ -12,7 +12,7 @@ ws.on("open", () => {
     const message: AuthenticationData = {
         login: "ian",
         password: "ian",
-        subject: "authenicate"
+        subject: "authenticate"
     };
     ws.send(JSON.stringify(message));
 });
@@ -23,7 +23,7 @@ ws.on("message", (message: string) => {
         const message: NewMessage & Subject = {
             subject: newMessageSubject,
             salt: Date.now().toString(),
-            content: "hi dan",
+            content: "everything is ok, Dan?",
             toWhom: "dan"
         };
         ws.send(JSON.stringify(message));
