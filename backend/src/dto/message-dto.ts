@@ -26,5 +26,5 @@ export interface NewMessage {
     /**
      * User id that the message is addressed to. Empty means a message addressed to everyone.
      */
-    toWhom?: string;
+    receiver?: string;
 }

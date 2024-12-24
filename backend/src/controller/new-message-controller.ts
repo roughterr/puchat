@@ -17,8 +17,8 @@ export class NewMessageController implements AbstractController {
             salt: "",
             content: newMessage.content,
             subject: "new-message",
-            fromWhom: newMessage.toWhom
+            fromWhom: newMessage.receiver
         };
-        serverContext.sendJsonToUser(newMessage.toWhom, messageToSend);
+        serverContext.sendJsonToUser(newMessage.receiver, messageToSend);
     }
 }

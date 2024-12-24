@@ -35,7 +35,7 @@ ws.on("message", (message: string) => {
                         subject: newMessageSubject,
                         salt: Date.now().toString(),
                         content: content,
-                        toWhom: username
+                        receiver: username
                     };
                     ws.send(JSON.stringify(message));
                     recursiveAsyncReadLine(); //Calling this function again to ask new question
