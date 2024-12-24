@@ -23,7 +23,7 @@ export class AuthenticationService {
       const message = {
         login: username,
         password: password,
-        subject: 'authenicate'
+        subject: 'authenticate'
       };
       this.sendMessage(message);
     };

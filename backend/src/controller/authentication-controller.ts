@@ -3,11 +3,11 @@ import { ServerContext } from "../contexts/server-context";
 import { AbstractController } from "./abstract-controller";
 import { Subject } from "../dto/subject";
 
-export const authenicateSubject: string = "authenicate";
+export const authenticateSubject: string = "authenticate";
 
 export class AuthenticationController implements AbstractController {
     subject(): string {
-        return authenicateSubject;
+        return authenticateSubject;
     }
 
     handleMessage(serverContext: ServerContext, connectionContext: ConnectionContext, parsedMessage: any): void {
