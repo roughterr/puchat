@@ -17,15 +17,15 @@ export class PuchatTypeMessageComponent {
    * Content of the new message;
    */
   content: string = '';
-  toWhom = new FormControl('');
+  receiver = new FormControl('');
 
   constructor(private messageService: MessageService) {
   }
 
   onSend() {
-    this.messageService.sendMessage(this.content, this.toWhom.getRawValue() || '');
+    this.messageService.sendMessage(this.content, this.receiver.getRawValue() || '');
     // reset values
     this.content = '';
-    this.toWhom.setValue('');
+    this.receiver.setValue('');
   }
 }

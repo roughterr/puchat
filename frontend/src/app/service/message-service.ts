@@ -19,9 +19,9 @@ export class MessageService {
   /**
    * Sends a message to another user.
    * @param content
-   * @param toWhom
+   * @param receiver
    */
-  public sendMessage(content: string, toWhom: string) {
+  public sendMessage(content: string, receiver: string) {
     const message = new Message();
     message.content = content;
     message.mine = true;
@@ -31,7 +31,7 @@ export class MessageService {
       subject: this.newMessageSubject,
       salt: Date.now().toString(),
       content: content,
-      toWhom: toWhom
+      receiver: receiver
     });
   }
 }
