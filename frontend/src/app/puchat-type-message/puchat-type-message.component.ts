@@ -26,6 +26,5 @@ export class PuchatTypeMessageComponent {
     this.messageService.sendMessage(this.content, this.receiver.getRawValue() || '');
     // reset values
     this.content = '';
-    this.receiver.setValue('');
   }
 }

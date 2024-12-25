@@ -35,7 +35,7 @@ export class AuthenticationService {
         // let's parse JSON
         let jsonObj = JSON.parse(message.data);
         console.log(`subject: ${jsonObj.subject}`);
-        if (jsonObj.subject == 'new-message') {
+        if (jsonObj.subject == 'message') {
           this.incomingMessagesSubject.next(jsonObj);
         }
       }
