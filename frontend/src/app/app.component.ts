@@ -17,8 +17,8 @@ export class AppComponent {
   authenticated: boolean = false;
 
   constructor(private websocketService: AuthenticationService) {
-    websocketService.getAuthenticatedObservable().subscribe(authenticated => {
-      this.authenticated = authenticated;
+    websocketService.getAuthenticatedObservable().subscribe(result => {
+      this.authenticated = result.success;
     });
   }
 }

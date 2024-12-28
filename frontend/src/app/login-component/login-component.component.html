@@ -1,8 +1,8 @@
 <div *ngIf="showLoggedOutDiv">
   <p style="color:orangered;">You have logged out.</p>
 </div>
-<div *ngIf="showLoggedInDiv">
-  <p style="color:green;">You have logged in.</p>
+<div *ngIf="authenticated">
+  <p style="color:green;">{{authenticatedText}}</p>
 </div>
 <div *ngIf="loginExpanded">
   <p>Please enter your credentials:</p>

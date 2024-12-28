@@ -1,13 +1,13 @@
-import { Injectable } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import {Injectable} from '@angular/core';
+import {Observable, Subject} from 'rxjs';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({providedIn: 'root'})
 export class AuthenticationService {
   /**
    * Notifies other components when you authenticated.
    * @private
    */
-  private authenticatedSubject: Subject<boolean> = new Subject<boolean>();
+  private authenticatedSubject: Subject<AuthenticationResult> = new Subject<AuthenticationResult>();
   /**
    * Notifies other components when you authenticated.
    * @private
@@ -30,7 +30,7 @@ export class AuthenticationService {
     this.ws.onmessage = (message) => {
       console.log(`received message from websocket: ${message.data}`);
       if (message.data == 'authentication successful') {
-        this.authenticatedSubject.next(true);
+        this.authenticatedSubject.next(new AuthenticatedResult(username));
       } else {
         // let's parse JSON
         let jsonObj = JSON.parse(message.data);
@@ -43,14 +43,14 @@ export class AuthenticationService {
     this.ws.onclose = () => {
       alert(`WebSocketSubject connection closed.`);
       // forced logout because the session was dropped
-      this.authenticatedSubject.next(false);
+      this.authenticatedSubject.next(new UnauthenticatedResult());
     };
   }
 
   logout() {
     // we need to think about whether we want to close the websocket connection on logout
     // this.ws?.close();
-    this.authenticatedSubject.next(false);
+    this.authenticatedSubject.next(new UnauthenticatedResult());
   }
 
   sendMessage(message: any) {
@@ -61,7 +61,7 @@ export class AuthenticationService {
    * Subscribers can know when the user logged in or logged out.
    * @returns {Observable<any>}
    */
-  getAuthenticatedObservable(): Observable<boolean> {
+  getAuthenticatedObservable(): Observable<AuthenticationResult> {
     return this.authenticatedSubject.asObservable();
   }
 
@@ -69,3 +69,29 @@ export class AuthenticationService {
     return this.incomingMessagesSubject.asObservable();
   }
 }
+
+export interface AuthenticationResult {
+  login?: string;
+  success: boolean;
+}
+
+class UnauthenticatedResult implements AuthenticationResult {
+  login?: string;
+  success: boolean;
+
+  constructor() {
+    this.login = undefined;
+    this.success = false;
+  }
+}
+
+class AuthenticatedResult implements AuthenticationResult {
+  login: string;
+  success: boolean;
+
+  constructor(login: string) {
+    this.login = login;
+    this.success = true;
+  }
+}
+

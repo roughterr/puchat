@@ -14,17 +14,21 @@ export class LoginComponentComponent {
   username = new FormControl('');
   password = new FormControl('');
 
+  authenticatedText: string = '';
+
   authenticated: boolean = false;
   showLoggedOutDiv: boolean = false;
-  showLoggedInDiv: boolean = false;
-  loginExpanded: boolean = false;
+  // showLoggedInDiv: boolean = false;
+  loginExpanded: boolean = true;
 
   constructor(private websocketService: AuthenticationService) {
-    websocketService.getAuthenticatedObservable().subscribe(authenticated => {
-      this.authenticated = authenticated;
-      if (authenticated) {
-        this.showLoggedInDivForAFewSeconds();
+    websocketService.getAuthenticatedObservable().subscribe(result => {
+      this.authenticated = result.success;
+      if (this.authenticated) {
         this.loginExpanded = false;
+        this.authenticatedText = `You are logged in as ${result.login}.`;
+      } else {
+        this.loginExpanded = true;
       }
     });
   }
@@ -35,6 +39,7 @@ export class LoginComponentComponent {
   }
 
   onLogout() {
+    // this.showGreenText = false;
     this.showLoggedOutDivDivForAFewSeconds();
     this.websocketService.logout();
   }
@@ -46,12 +51,12 @@ export class LoginComponentComponent {
     }, 3000);
   }
 
-  private showLoggedInDivForAFewSeconds() {
-    this.showLoggedInDiv = true;
-    setTimeout(() => {
-      this.showLoggedInDiv = false;
-    }, 3000);
-  }
+  // private showLoggedInDivForAFewSeconds() {
+  //   this.showLoggedInDiv = true;
+  //   setTimeout(() => {
+  //     this.showLoggedInDiv = false;
+  //   }, 3000);
+  // }
 
   expandLogin() {
     this.loginExpanded = true;
